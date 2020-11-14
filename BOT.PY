@@ -1,20 +1,82 @@
 import requests
 import json
+import time
+from threading import Thread
+from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 from tkinter import *
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support import expected_conditions as EC
 
 
 
-def parsPhoto(ssilka):
-    photka = requests.get(ssilka, headers=headers).content
-    return  photka
-def pushTasks():
-    Tasks = Tk()
-    Tasks.title("create tasks")
-    Tasks.geometry('720x620')
-    Tasks.resizable(width=0, height=0)
-    label = Label(text='name')
-    Tasks.mainloop()
+def log_in(driver, login, pass):
+    driver.get("https://www.nike.com/login")
+    g = driver.find_elemet_by_id("17ead543-3058-4bb9-811c-a9d53a2cb500")
+    g.send_keys(login, Keys.ARROW_DOWN)
+    g = driver.find_elemet_by_id("a6d5dd4d-2dd4-4a32-8cd1-5ac423185d86")
+    g.send_keys(pass, Keys.ARROW_DOWN)
+    g = driver.find_elemet_by_id("18ff9808-7abc-4cbc-877b-f4787726f731")
+    g.click()
+
+
+def entercard(driver):
+    id = 'cardNumber-input'
+    f = driver.find_elements_by_tag_name("iframe")
+    print(len(f))
+    driver.switch_to.frame(f[1])
+    # print(f.text)
+    h = driver.find_element_by_id("cardNumber-input"); h.send_keys("5469400021821413", Keys.ARROW_DOWN)
+    h = driver.find_element_by_id("cardExpiry-input"); h.send_keys("0723", Keys.ARROW_DOWN)
+    h = driver.find_element_by_id("cardCvc-input"); h.send_keys("245", Keys.ARROW_DOWN)
+    driver.switch_to.default_content()
+
+def acceptbuttonSec(driver):
+    f = driver.find_element_by_class_name("button-continue")
+    f.click()
+
+def acceptEnd(driver):
+    f = driver.find_element_by_class_name("button-submit")
+    f.click()
+
+def pushTasks(driver1, logs, pass):
+    for driver in driver1:
+        log_in(driver, logs)
+
+        driver.get("https://www.nike.com/RU/launch/t/%D0%BE%D0%B1%D1%83%D0%B2%D1%8C-%D0%B4%D0%BB%D1%8F-%D1%81%D0%BA%D0%B5%D0%B9%D1%82%D0%B1%D0%BE%D1%80%D0%B4%D0%B8%D0%BD%D0%B3%D0%B0-sb-dunk-low-pro/?productId=fe4310ff-b754-52d9-8eda-33d11b6f2b9f&size=8.5")
+        gg = driver.find_elements_by_id("middleName")
+        while (len(gg) == 0):
+            gg = driver.find_elements_by_id("middleName")
+            time.sleep(0.2)
+        gg[0].send_keys("Аслиддинович", Keys.ARROW_DOWN)
+        cc = driver.find_element_by_class_name("button-continue");
+        cc.click()
+        time.sleep(2)
+
+        entercard(driver)
+        time.sleep(2)
+        acceptbuttonSec(driver)
+        acceptEnd(driver)
+
+def windows():
+    logs = "logs"
+    pass = "pass"
+
+    path = "D:\chromedriver.exe"
+    window = 1
+    listWin = []
+    while window != 3:
+        options = Options()
+        options.add_argument("--user-data-dir=C:/Users/лллл/AppData/Local/Google/Chrome/User Data/g" + str(window))
+        options.add_argument('--profile-directory=Profile '+str(window))
+        listWin.append(webdriver.Chrome(executable_path=path, chrome_options=options))
+        window +=1
+    pushTasks(listWin, logs, pass)
+
 
 def main():
     BotSys = Tk()
@@ -38,8 +100,9 @@ def main():
     for i in range(len(snGotovoF)):
         label = Label(text = (snGotovoF[i] + ' - ' + snGotovoS[i]),padx='12', pady='2',font=15)
         label.pack()
+
     button = Button(text='Create tasks', width=7,height=1, padx='20',pady='2',font = 10,bg = 'black'
-                    , fg = 'red', command=pushTasks)
+                    , fg = 'red', command=windows)
 
 
     button.pack()
