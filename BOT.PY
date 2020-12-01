@@ -79,9 +79,9 @@ def entercard(driver):
     print(len(f))
     driver.switch_to.frame(f[1])
     # print(f.text)
-    h = driver.find_element_by_id("cardNumber-input"); h.send_keys("5469400021855551", Keys.ARROW_DOWN)
-    h = driver.find_element_by_id("cardExpiry-input"); h.send_keys("1123", Keys.ARROW_DOWN)
-    h = driver.find_element_by_id("cardCvc-input"); h.send_keys("686", Keys.ARROW_DOWN)
+    h = driver.find_element_by_id("cardNumber-input"); h.send_keys("54694123213", Keys.ARROW_DOWN)
+    h = driver.find_element_by_id("cardExpiry-input"); h.send_keys("2321", Keys.ARROW_DOWN)
+    h = driver.find_element_by_id("cardCvc-input"); h.send_keys("213", Keys.ARROW_DOWN)
     driver.switch_to.default_content()
 
 def waitMessage():
