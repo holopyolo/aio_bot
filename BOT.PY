@@ -19,13 +19,12 @@ import datetime
 import zipfile
 #from discordwebhook import Discord
 import math
-
-page_load = ''
+import random
 
 threadWinAdidas = []
 threadsWin = []
 listWin = []
-delay = 0.2
+delay = 0.5
 
 def get_chromedriver(PROXY_USER, PROXY_PASS, PROXY_HOST, PROXY_PORT, use_proxy=False, user_agent=None):
     manifest_json = """
@@ -93,7 +92,7 @@ def get_chromedriver(PROXY_USER, PROXY_PASS, PROXY_HOST, PROXY_PORT, use_proxy=F
         chrome_options.add_argument('--user-agent=%s' % user_agent)
 
     driver = webdriver.Chrome(
-        'd:/chromedriver.exe',
+        executable_path='D:/chromedriver.exe',
         chrome_options=chrome_options)
     return driver
 
@@ -126,14 +125,20 @@ def login(driver, username, password):
     wait_until_visible(driver=driver, xpath="//input[@name='emailAddress']")
     time.sleep(delay)
     email_input = driver.find_element_by_xpath("//input[@name='emailAddress']")
+    email_input.click()
     time.sleep(delay)
     email_input.clear()
+    time.sleep(delay)
+    email_input.click()
     time.sleep(delay)
     email_input.send_keys(username)
     time.sleep(delay)
     password_input = driver.find_element_by_xpath("//input[@name='password']")
+    password_input.click()
     time.sleep(delay)
     password_input.clear()
+    time.sleep(delay)
+    password_input.click()
     time.sleep(delay)
     password_input.send_keys(password+'\n')
     time.sleep(delay)
@@ -145,9 +150,9 @@ def login(driver, username, password):
     else:
         return True
 
-def uvedomit(s,ms, num):
-    discord = Discord(url="https://discord.com/api/webhooks/792988577969602601/pa-XIotP9qP_0lK_LeQWW-JK3oHz_6Otb5zC3aj4lRq5FtAP3Qx4d_7gs6qVzkxzffyh")
-    discord.post(content=("@everyone\nТайминг №" + num+' - '+s+ ' '+ ms))
+#def uvedomit(s,ms, num):
+    #discord = Discord(url="https://discord.com/api/webhooks/792988577969602601/pa-XIotP9qP_0lK_LeQWW-JK3oHz_6Otb5zC3aj4lRq5FtAP3Qx4d_7gs6qVzkxzffyh")
+    #discord.post(content=("@everyone\nТайминг №" + str(num)+' - '+str(s)+ ' '+ str(ms)))
 
 def log_in(driver, login, pass1):
     driver.get("https://www.nike.com/ru/launch")
@@ -164,15 +169,17 @@ def log_in(driver, login, pass1):
         time.sleep(0.5)
 
 def entercard(driver, num):
+    cards = loadCard()   #пример заполнения: номеркарты:дата:свв        todo: перенести в отдельную функцию
+    cardmain = cards[random.randint(0, (len(cards)-1))]
+    card = cardmain.split(':')
     print('Ввод карты.. ', num)
     id = 'cardNumber-input'
-    f = driver.find_elements_by_tag_name("iframe")
-    print(len(f))
-    driver.switch_to.frame(f[1])
+    f = driver.find_element_by_xpath('//iframe[@title="payment"]')
+    driver.switch_to.frame(f)
     # print(f.text)
-    h = driver.find_element_by_id("cardNumber-input"); h.send_keys("", Keys.ARROW_DOWN)
-    h = driver.find_element_by_id("cardExpiry-input"); h.send_keys("", Keys.ARROW_DOWN)
-    h = driver.find_element_by_id("cardCvc-input"); h.send_keys("", Keys.ARROW_DOWN)
+    h = driver.find_element_by_id("cardNumber-input"); h.send_keys(str(card[0]), Keys.ARROW_DOWN)
+    h = driver.find_element_by_id("cardExpiry-input"); h.send_keys(str(card[1]), Keys.ARROW_DOWN)
+    h = driver.find_element_by_id("cardCvc-input"); h.send_keys(str(card[2]), Keys.ARROW_DOWN)
     driver.switch_to.default_content()
     print('Успешно введена карта ', num)
 
@@ -187,27 +194,29 @@ def acceptEnd(driver, num, taiming):
     time.sleep(1)
     while (len(driver.find_elements_by_xpath('//span[@class="error"]'))>0):
         time.sleep(0.5)
+    print(taiming[0], ' ', int(taiming[0]))
+
     while (True):
         now = datetime.datetime.now()
         h = now.hour
         m = now.minute
         s = now.second
         ms = now.microsecond
-        if (h != 13):
+        if (h != 00):
             time.sleep(5)
             print('Ожидание тайминга.. №', num)
             continue
-        elif (m != 59):
+        elif (m != 25):
             time.sleep(1)
             continue
-        elif (s < taiming[0]):
+        elif (s < int(taiming[0])):
             time.sleep(0.2)
             continue
-        elif (ms < taiming[1]):
+        elif (ms < int(taiming[1])):
             time.sleep(25)
             continue
+        #uvedomit(s, ms, num)
         break
-        uvedomit(s, ms, num)
     driver.find_element_by_xpath('//button[@class="button-submit"]').click()
 
 def waitingwhilelog(driver, logs, pass1,num):
@@ -218,19 +227,37 @@ def waitingwhilelog(driver, logs, pass1,num):
         time.sleep(20)
         check = login(driver, logs, pass1)
 
-def pushTasks(driver, logs, pass1, num, taiming):
+def checkmenuphone(driver, number):
+    if (checkexist(driver, xpath='//div[@class="view-header"]')):
+        print(str(number)+ ' Таск. Error: obstacle. Retry...')
+    driver.find_element_by_xpath('//button[@aria-Label="Закрыть"]').click()
+    if (not(checkexist(driver, '//div[@class="view-header"]'))):
+        print(str(number) + ' Таск. Окно успешно закрыто, продолжаю')
+        return 1
+    else:
+        print(str(number) + ' Таск. Error: obstacle')
+        return 0
+
+
+def pushTasks(driver, logs, pass1, num, taiming, page_load1):
     waitingwhilelog(driver, logs, pass1, num)
     print('Удача! Вошел в аккаунт ', num)
-    driver.get(
-        "https://www.nike.com/ru/launch/t/sb-dunk-low-pro-court-purple1?productId=99c0d47c-225f-5c50-b078-1a1044c114e9&size=10.5")
-    print('ss ', num)
-    gg = driver.find_elements_by_id("middleName")
-    time.sleep(6)
-    while (len(gg) == 0):
-        gg = driver.find_elements_by_id("middleName")
-        time.sleep(3)
+    driver.get(page_load1)
+    #print('ss ', num)
+    time.sleep(6)   #
+    wait_until_visible(driver=driver, xpath='//*[@id="middleName"]')
     print('Перешел на чекаут.. Ввод.. ', num)
-    gg[0].send_keys("ОТЧЕСТВО", Keys.ARROW_DOWN)
+
+    lname = driver.find_element_by_id("middleName")
+    lname.click()
+    lname.clear()
+    lname.send_keys("", Keys.ARROW_DOWN)
+
+    sname = driver.find_element_by_id("lastName")
+    sname.click()
+    sname.clear()
+    sname.send_keys("", Keys.ARROW_DOWN)
+
     wait_until_clickable(driver, class_name='button-continue')
     driver.find_element_by_class_name('button-continue').click()
     time.sleep(2)
@@ -243,6 +270,12 @@ def loadProxies():
     with open('proxies.txt') as f:
         proxies = f.readlines()
     return  proxies
+
+def loadCard():
+    card = []
+    with open('card.txt') as f:
+        card = f.readlines()
+    return  card
 
 def loadlog():
     logs = []
@@ -265,7 +298,7 @@ def waiting():
             break
         time.sleep(60)
 
-def windows(kolvoacc, taimings):
+def windows(kolvoacc, taimings, page_load1):
 
     infosTasks = []
     logs = loadlog()
@@ -298,7 +331,7 @@ def windows(kolvoacc, taimings):
             k+=1
     it = 0
     for driver in listWin:
-        t = threading.Thread(target=pushTasks, args=(driver, logs[it], pass1[it], (it+1), taimings[it]))
+        t = threading.Thread(target=pushTasks, args=(driver, logs[it], pass1[it], (it+1), taimings[it], page_load1))
         threadsWin.append(t)
         t.start()
         it += 1
@@ -309,7 +342,7 @@ def windows(kolvoacc, taimings):
 
 def main():
     print('url atc nike: ')
-    page_load = input()
+    page_load1 = input()
     kolvoacc = 0
     print('кол-во тасков')
     kolvoacc = input()
@@ -325,7 +358,7 @@ def main():
         taimings[it][0] = j
         taimings[it][1] = j2
         it +=1
-    windows(kolvoacc, taimings)
+    windows(kolvoacc, taimings, page_load1)
 
 
 if __name__ == '__main__':
