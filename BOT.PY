@@ -417,7 +417,7 @@ def streetBeat():
     time.sleep(delay1)
     wait_until_visible(driver=driver, xpath='//input[@type="tel"]')
     time.sleep(delay1)
-    driver.find_element_by_xpath('//input[@type="tel"]').send_keys('9652216353')
+    driver.find_element_by_xpath('//input[@type="tel"]').send_keys('NUM')
     driver.find_element_by_xpath('//button[@type="sumbit"]').click()
 
 
