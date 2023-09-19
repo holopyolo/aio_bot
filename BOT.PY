@@ -284,12 +284,12 @@ def pushTasks(driver, logs, pass1, num, taiming, page_load1):
     lname = driver.find_element_by_id("middleName")
     lname.click()
     lname.clear()
-    lname.send_keys("Аслиддинович", Keys.ARROW_DOWN)
+    lname.send_keys("YOUR MIDDLENAME", Keys.ARROW_DOWN)
 
     sname = driver.find_element_by_id("lastName")
     sname.click()
     sname.clear()
-    sname.send_keys("Сариков", Keys.ARROW_DOWN)
+    sname.send_keys("YOUR SURNAME", Keys.ARROW_DOWN)
 
     wait_until_clickable(driver, class_name='button-continue')
     time.sleep(delay)
